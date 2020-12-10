@@ -32,7 +32,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpPost("create")]
-        public async Task<IActionResult> Create(FieldDto fieldDto)
+        public async Task<ActionResult<FieldDto>> Create(FieldDto fieldDto)
         {
             // validate request
             fieldDto.Name = fieldDto.Name.ToLower();
@@ -64,7 +64,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllRecords()
+        public async Task<ActionResult<List<FieldDto>>> GetAllRecords()
         {
             var dbModel =
                 await _unitOfWork.Fields.FindByConditionList(include: source => source.Include(x => x.Matches));
@@ -76,7 +76,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSingleRecord(int id)
+        public async Task<ActionResult<FieldDto>> GetSingleRecord(int id)
         {
             var fieldDto =
                 new FieldDto(await _unitOfWork.Fields.FindByConditionSingle(
@@ -90,7 +90,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("getFieldWithMatches")]
-        public async Task<IActionResult> GetAllMatchesByField()
+        public async Task<ActionResult<List<FieldDto>>> GetAllMatchesByField()
         {
             try
             {
@@ -106,7 +106,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [Authorize(Policy = "Root")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAsync(int id, FieldDto fieldDto)
+        public async Task<ActionResult<FieldDto>> PutAsync(int id, FieldDto fieldDto)
         {
             fieldDto.Name = fieldDto.Name.ToLower();
             var field = await _unitOfWork.Fields.GetById(id);
@@ -131,7 +131,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [Authorize(Policy = "Root")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult> Delete([FromRoute] int id)
         {
             var field = await _unitOfWork.Fields.FindByConditionSingle(x => x.Id == id);
             if (field == null) return BadRequest();

@@ -48,7 +48,7 @@ namespace il_y.BracketSystem.Web.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserForListDto>> GetUser(int id)
+        public async Task<ActionResult> GetUser(int id)
         {
             try
             {
