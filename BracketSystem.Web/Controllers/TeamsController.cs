@@ -41,7 +41,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpPost("create")]
-        public async Task<IActionResult> Create(TeamDto teamDto)
+        public async Task<ActionResult<TeamDto>> Create(TeamDto teamDto)
         {
             // validate request
 
@@ -82,7 +82,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllRecords()
+        public async Task<ActionResult<IOrderedEnumerable<TeamDto>>> GetAllRecords()
         {
             var teams = await _unitOfWork.Teams.GetAllRecordsFromDatabase();
             var tempTeams = await _unitOfWork.Teams.FindByConditionList(filter: x => x.Name != "pause");
@@ -92,7 +92,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSingleRecord(int id)
+        public async Task<ActionResult<TeamDto>> GetSingleRecord(int id)
         {
             var teamDto = new TeamDto(await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id));
 
@@ -101,7 +101,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [Authorize(Policy = "Root")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAsync(int id, TeamDto teamDto)
+        public async Task<ActionResult<TeamDto>> PutAsync(int id, TeamDto teamDto)
         {
             teamDto.Name = teamDto.Name.ToLower();
             var team = await _unitOfWork.Teams.GetById(id);

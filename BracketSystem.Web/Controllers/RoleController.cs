@@ -26,7 +26,7 @@ namespace il_y.BracketSystem.Web.Controllers
         // GET
         [HttpGet]
         // [Authorize(Policy = "Root")]
-        public async Task<IActionResult> GetRoles()
+        public async Task<ActionResult<List<string>>> GetRoles()
         {
             var roles = await _roleManager.Roles.ToListAsync();
             var roleNames = roles.Select(role => role.Name).ToList();

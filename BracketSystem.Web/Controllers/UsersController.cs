@@ -34,7 +34,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Root")]
-        public async Task<IActionResult> GetUsers()
+        public async Task<ActionResult<IEnumerable<object>>> GetUsers()
         {
             // only allow admins to access other user records
 
@@ -42,13 +42,13 @@ namespace il_y.BracketSystem.Web.Controllers
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             _user = await _unitOfWork.Users.GetById(currentUserId);
 
-            var users = await _unitOfWork.Users.UserListWithRoles();
+            IEnumerable<object> users = await _unitOfWork.Users.UserListWithRoles();
 
             return Ok(users);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(int id)
+        public async Task<ActionResult<UserForListDto>> GetUser(int id)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [Authorize(Policy = "Root")]
         [HttpPost("{userName}")]
-        public async Task<IActionResult> EditRoles(string userName, RoleEditDto roleEditDto)
+        public async Task<ActionResult<IList<string>>> EditRoles(string userName, RoleEditDto roleEditDto)
         {
             var user = await _userManager.FindByNameAsync(userName);
 
@@ -140,7 +140,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("[action]")]
-        public async Task<IActionResult> GetSharedMatches()
+        public async Task<ActionResult<List<KeyPairValueDto>>> GetSharedMatches()
         {
             if (User == null)
             {

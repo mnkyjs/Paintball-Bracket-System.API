@@ -8,6 +8,7 @@ using il_y.BracketSystem.Core.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace il_y.BracketSystem.Web.Controllers
 {
@@ -26,7 +27,7 @@ namespace il_y.BracketSystem.Web.Controllers
         #region Methods
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(Location location)
+        public async Task<ActionResult<Location>> Create(Location location)
         {
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -64,7 +65,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllRecords()
+        public async Task<ActionResult<IEnumerable<LocationDto>>> GetAllRecords()
         {
             var dbModel = await _unitOfWork.Locations.FindByConditionList(include: source => source.Include(x => x.Paintballfields));
             var listLocationDto = dbModel.Select(LocationDto.FromEntity);
@@ -73,9 +74,9 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSingleRecord(int id)
+        public async Task<ActionResult<Location>> GetSingleRecord(int id)
         {
-            var location = await _unitOfWork.Locations.GetById(id);
+            var location = await _unitOfWork.Locations.GetById(id).ConfigureAwait(true);
             if (location == null)
                 return BadRequest();
 
@@ -83,7 +84,7 @@ namespace il_y.BracketSystem.Web.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAsync(int id, Location location)
+        public async Task<ActionResult<Location>> PutAsync(int id, Location location)
         {
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);

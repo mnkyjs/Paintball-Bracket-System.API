@@ -36,7 +36,7 @@ namespace il_y.BracketSystem.Web.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
+        public async Task<ActionResult<User>> Register(UserForRegisterDto userForRegisterDto)
         {
             var userToCreate = new User();
             userForRegisterDto.UpdateEntity(userToCreate);
@@ -45,11 +45,11 @@ namespace il_y.BracketSystem.Web.Controllers
             var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password);
             await _userManager.AddToRoleAsync(userToCreate, "Member");
 
-            return !result.Succeeded ? (IActionResult) BadRequest() : Ok(userToCreate);
+            return !result.Succeeded ? (ActionResult) BadRequest() : Ok(userToCreate);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
+        public async Task<ActionResult<object>> Login(UserForLoginDto userForLoginDto)
         {
             var user = await _userManager.FindByNameAsync(userForLoginDto.Username);
 

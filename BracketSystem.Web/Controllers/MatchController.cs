@@ -29,7 +29,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpPost("createSchedule")]
-        public async Task<List<TeamDto[]>> CreateSchedule(CreateScheduleDto createScheduleDto)
+        public async Task<ActionResult<List<TeamDto[]>>> CreateSchedule(CreateScheduleDto createScheduleDto)
         {
             var teamDtos = new List<TeamDto>();
 
@@ -53,7 +53,7 @@ namespace il_y.BracketSystem.Web.Controllers
 
             await _unitOfWork.CompleteAsync();
 
-            return matches;
+            return Ok(matches);
         }
 
         [HttpDelete("deleteAllMatch")]
@@ -82,14 +82,14 @@ namespace il_y.BracketSystem.Web.Controllers
         }
 
         [HttpGet("getMatches")]
-        public async Task<IActionResult> GetAllMatches()
+        public async Task<ActionResult<List<BlockDto>>> GetAllMatches()
         {
             try
             {
                 var currentUserId =
                     Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 _user = await _unitOfWork.Users.GetById(currentUserId);
-                var matches = await _unitOfWork.Matches.GetMatches(_user);
+                var matches = await _unitOfWork.Matches.GetMatches(_user).ConfigureAwait(true);
                 return Ok(matches);
             }
             catch (Exception ex)
@@ -100,11 +100,11 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("getByField")]
-        public async Task<IActionResult> GetAllMatchesByField(int paintballfield)
+        public async Task<ActionResult<List<BlockDto>>> GetAllMatchesByField(int paintballfield)
         {
             try
             {
-                var matches = await _unitOfWork.Matches.GetMatchesByField(paintballfield);
+                var matches = await _unitOfWork.Matches.GetMatchesByField(paintballfield).ConfigureAwait(true);
                 return Ok(matches);
             }
             catch (Exception ex)
@@ -115,19 +115,19 @@ namespace il_y.BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("{time}/{name}")]
-        public async Task<IActionResult> GetMatchesByDate(DateTime time, string name)
+        public async Task<ActionResult<List<BlockDto>>> GetMatchesByDate(DateTime time, string name)
         {
-            var matches = await _unitOfWork.Matches.GetMatchesByDate(time, name);
+            var matches = await _unitOfWork.Matches.GetMatchesByDate(time, name).ConfigureAwait(true);
             return Ok(matches);
         }
 
         [HttpGet("[action]")]
-        public async Task<IActionResult> GetMatchesByDateAndUser(DateTime time, string name)
+        public async Task<ActionResult<List<BlockDto>>> GetMatchesByDateAndUser(DateTime time, string name)
         {
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             _user = await _unitOfWork.Users.GetById(currentUserId);
-            var matches = await _unitOfWork.Matches.GetMatchesByDateAndUser(time, _user, name);
+            var matches = await _unitOfWork.Matches.GetMatchesByDateAndUser(time, _user, name).ConfigureAwait(true);
             return Ok(matches);
         }
     }
