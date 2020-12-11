@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace il_y.BracketSystem.Core.Models
+namespace BracketSystem.Core.Models
 {
     [Flags]
     public enum Role

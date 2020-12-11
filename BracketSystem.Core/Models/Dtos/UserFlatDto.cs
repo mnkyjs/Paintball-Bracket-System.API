@@ -1,6 +1,6 @@
-﻿using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Models.Entities;
 
-namespace il_y.BracketSystem.Core.Models.Dtos
+namespace BracketSystem.Core.Models.Dtos
 {
     public class UserFlatDto : BaseDto<User>
     {

@@ -1,11 +1,11 @@
-﻿using System;
+﻿using BracketSystem.Core.Models.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 
-namespace il_y.BracketSystem.Core.Data.Repositories
+namespace BracketSystem.Core.Data.Repositories
 {
     public class FieldRepo : GenericRepository<Paintballfield>, IFieldRepo
     {
@@ -31,12 +31,12 @@ namespace il_y.BracketSystem.Core.Data.Repositories
         {
             var field = await BracketContext.Paintballfields.Include(m => m.Matches)
                 .Where(x => x.Matches.Count > 0).ToListAsync();
-            var fieldListForView = field.Select(newField => new Paintballfield
+            var fieldListForView = field.ConvertAll(newField => new Paintballfield
             {
                 Id = newField.Id,
                 Name = newField.Name,
                 Matches = newField.Matches.Where(dt => dt.Date >= DateTime.Today).OrderBy(d => d.Date).ToList()
-            }).ToList();
+            });
 
             return fieldListForView;
         }

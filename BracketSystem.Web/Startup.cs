@@ -1,11 +1,8 @@
-﻿using System.Net;
-using System.Runtime.InteropServices;
-using System.Text;
-using il_y.BracketSystem.Core.Data;
-using il_y.BracketSystem.Core.Data.Repositories;
-using il_y.BracketSystem.Core.Helpers;
-using il_y.BracketSystem.Core.Models.Entities;
-using il_y.BracketSystem.Web.AspNetCore.Swagger;
+﻿using BracketSystem.Core.Data;
+using BracketSystem.Core.Data.Repositories;
+using BracketSystem.Core.Helpers;
+using BracketSystem.Core.Models.Entities;
+using BracketSystem.Web.AspNetCore.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -21,8 +18,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using System.Net;
+using System.Text;
 
-namespace il_y.BracketSystem.Web
+namespace BracketSystem.Web
 {
     public class Startup
     {
@@ -37,10 +36,7 @@ namespace il_y.BracketSystem.Web
 
         public void ConfigureDevelopmentServices(IServiceCollection services)
         {
-            services.AddDbContext<BracketContext>(x =>
-                {
-                    x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
-                }
+            services.AddDbContext<BracketContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
             );
 
             ConfigureServices(services);
@@ -80,10 +76,8 @@ namespace il_y.BracketSystem.Web
             builder.AddRoleManager<RoleManager<Role>>();
             builder.AddSignInManager<SignInManager<User>>();
 
-
             AddAuthenticationScheme(services);
             AddPolicies(services);
-           
 
             services.AddControllers(
                     options =>
@@ -93,15 +87,11 @@ namespace il_y.BracketSystem.Web
                             .Build();
                         options.Filters.Add(new AuthorizeFilter(policy));
                     })
-                .AddNewtonsoftJson(opt =>
-                {
-                    opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                });
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             services.AddCors();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 
             if (HostingEnvironment.IsDevelopment())
                 // Register the Swagger generator, defining 1 or more Swagger documents
@@ -195,6 +185,5 @@ namespace il_y.BracketSystem.Web
                options.AddPolicy("Root", policy => policy.RequireRole("RootAdmin"));
            });
         }
-    
     }
 }

@@ -1,8 +1,8 @@
-using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
-namespace il_y.BracketSystem.Web.Controllers
+namespace BracketSystem.Web.Controllers
 {
     [AllowAnonymous]
     public class Fallback : Controller

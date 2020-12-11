@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using BracketSystem.Core.Models.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Models.Entities;
 
-namespace il_y.BracketSystem.Core.Data
+namespace BracketSystem.Core.Data
 {
     public interface IFieldRepo : IGenericRepository<Paintballfield>
     {

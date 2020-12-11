@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Data;
-using il_y.BracketSystem.Core.Models.Dtos;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Data;
+using BracketSystem.Core.Models.Dtos;
+using BracketSystem.Core.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
-namespace il_y.BracketSystem.Web.Controllers
+namespace BracketSystem.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -62,6 +62,41 @@ namespace il_y.BracketSystem.Web.Controllers
             return CreatedAtAction(nameof(GetSingleRecord), new {fieldToCreate.Id}, fieldDto);
         }
 
+        [Authorize(Policy = "Root")]
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete([FromRoute] int id)
+        {
+            var field = await _unitOfWork.Fields.FindByConditionSingle(x => x.Id == id);
+            if (field == null) return BadRequest();
+
+            var currentUserId =
+                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            _user = await _unitOfWork.Users.GetById(currentUserId);
+
+            // if (field.CreatorId != _user.Id && !_user.IsAdmin()) return BadRequest("Du hast keine Berechtigung!");
+
+            await _unitOfWork.Fields.DeleteObjectById(id);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(200);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("getFieldWithMatches")]
+        public async Task<ActionResult<List<FieldDto>>> GetAllMatchesByField()
+        {
+            try
+            {
+                var fields = await _unitOfWork.Fields.GetFieldsWithMatches();
+                var listFieldDto = fields.ConvertAll(field => new FieldDto(field));
+                return Ok(listFieldDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}");
+            }
+        }
+
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<List<FieldDto>>> GetAllRecords()
@@ -87,23 +122,6 @@ namespace il_y.BracketSystem.Web.Controllers
 
             return BadRequest();
         }
-
-        [AllowAnonymous]
-        [HttpGet("getFieldWithMatches")]
-        public async Task<ActionResult<List<FieldDto>>> GetAllMatchesByField()
-        {
-            try
-            {
-                var fields = await _unitOfWork.Fields.GetFieldsWithMatches();
-                var listFieldDto = fields.Select(field => new FieldDto(field)).ToList();
-                return Ok(listFieldDto);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"{ex.Message}");
-            }
-        }
-
         [Authorize(Policy = "Root")]
         [HttpPut("{id}")]
         public async Task<ActionResult<FieldDto>> PutAsync(int id, FieldDto fieldDto)
@@ -128,26 +146,6 @@ namespace il_y.BracketSystem.Web.Controllers
 
             return CreatedAtAction(nameof(GetSingleRecord), new {field.Id}, fieldDto);
         }
-
-        [Authorize(Policy = "Root")]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete([FromRoute] int id)
-        {
-            var field = await _unitOfWork.Fields.FindByConditionSingle(x => x.Id == id);
-            if (field == null) return BadRequest();
-
-            var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
-
-            // if (field.CreatorId != _user.Id && !_user.IsAdmin()) return BadRequest("Du hast keine Berechtigung!");
-
-            await _unitOfWork.Fields.DeleteObjectById(id);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(200);
-        }
-
         #endregion Methods
     }
 }

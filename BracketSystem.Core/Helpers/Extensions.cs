@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace il_y.BracketSystem.Core.Helpers
+namespace BracketSystem.Core.Helpers
 {
     public static class Extensions
     {

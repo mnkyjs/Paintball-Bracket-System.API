@@ -1,12 +1,13 @@
-﻿using System;
+﻿using BracketSystem.Core.Data;
+using BracketSystem.Core.Models.Dtos;
+using BracketSystem.Core.Models.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Models.Dtos;
-using il_y.BracketSystem.Core.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 
-namespace il_y.BracketSystem.Core.Data.Repositories
+namespace BracketSystem.Core.Data.Repositories
 {
     public class MatchScheduleRepo : GenericRepository<Match>, IMatchScheduleRepo
     {
@@ -78,17 +79,17 @@ namespace il_y.BracketSystem.Core.Data.Repositories
             return allMatches;
         }
 
-        public async Task<List<BlockDto>> GetMatches(User user)
+        public async Task<List<TeamDto[]>> GetMatches(User user)
         {
-            var matches = await BracketContext.Matches.Where(u => u.User == user).Include(a => a.TeamA).Include(b => b.TeamB).ToListAsync();
+            var matches = await BracketContext.Matches.Where(u => u.User == user).ToListAsync();
             var listOfMatches = ShowMatches(matches);
             return await listOfMatches;
         }
 
-        public async Task<List<BlockDto>> GetMatchesByDateAndUser(DateTime dateTime, User user, string name)
+        public async Task<List<TeamDto[]>> GetMatchesByDate(DateTime dateTime, string name)
         {
-            var matches = BracketContext.Matches.Where(x => x.Date == dateTime).Include(a => a.TeamA).Include(b => b.TeamB).Where(u => u.User == user)
-                .Where(n => n.MatchName == name).ToList();
+            var matches = BracketContext.Matches.Include(u => u.User).Include(a => a.TeamA).Include(b => b.TeamB).Where(x => x.Date == dateTime).Where(n => n.MatchName == name)
+                .ToList();
             var listOfMatchesWithDate = await ShowMatches(matches);
             return listOfMatchesWithDate;
         }
@@ -100,18 +101,9 @@ namespace il_y.BracketSystem.Core.Data.Repositories
                 .ToListAsync();
             return await matches;
         }
-
-        public async Task<List<BlockDto>> GetMatchesByDate(DateTime dateTime, string name)
+        public async Task<List<TeamDto[]>> GetMatchesByField(int paintballFieldId)
         {
-            var matches = BracketContext.Matches.Include(u => u.User).Include(a => a.TeamA).Include(b => b.TeamB).Where(x => x.Date == dateTime).Where(n => n.MatchName == name)
-                .ToList();
-            var listOfMatchesWithDate = await ShowMatches(matches);
-            return listOfMatchesWithDate;
-        }
-
-        public async Task<List<BlockDto>> GetMatchesByField(int paintballFieldId)
-        {
-            var matches = await BracketContext.Matches.Include(f => f.Paintballfield).Include(a => a.TeamA).Include(b => b.TeamB)
+            var matches = await BracketContext.Matches.Include(f => f.Paintballfield)
                 .Where(li => li.PaintballfieldId == paintballFieldId)
                 .OrderBy(f => f.Date).ToListAsync();
 
@@ -145,10 +137,10 @@ namespace il_y.BracketSystem.Core.Data.Repositories
             {
                 var dayMatch = new Match
                 {
-                    TeamA = new Team {Id = item[0].Id, Name = item[0].Name},
-                    TeamB = new Team {Id = item[1].Id, Name = item[1].Name},
+                    TeamA = new Team { Id = item[0].Id, Name = item[0].Name },
+                    TeamB = new Team { Id = item[1].Id, Name = item[1].Name },
                     Date = date.Date.AddDays(1),
-                    User = new User {Id = user.Id, UserName = user.UserName},
+                    User = new User { Id = user.Id, UserName = user.UserName },
                     RandomUrl = url,
                     MatchName = clashName,
                     PaintballfieldId = paintballFieldId
@@ -160,29 +152,42 @@ namespace il_y.BracketSystem.Core.Data.Repositories
             await BracketContext.Matches.AddRangeAsync(dbMatches);
         }
 
-        private async Task<List<BlockDto>> ShowMatches(List<Match> dbMatches)
+        private async Task<List<TeamDto[]>> ShowMatches(IEnumerable<Match> dbMatches)
         {
-            List<BlockDto> matches = new List<BlockDto>();
-            int blockNumber = 1;
+            var showMatches = new List<TeamDto[]>();
 
-            for (int i = 0; i < dbMatches.Count; i += 2)
+            foreach (var match in dbMatches)
             {
-                var match = new BlockDto
+                var userForList = new UserFlatDto
                 {
-                    BlockNumber = blockNumber,
-                    Games = new List<string>
-                    {
-                        $"{dbMatches[i].TeamA.Name} vs. {dbMatches[i].TeamB.Name}",
-                        $"{dbMatches[i+1].TeamA.Name} vs. {dbMatches[i+1].TeamB.Name}",
-                    },
+                    UserName = match.User.UserName,
+                    TeamName = match.User.TeamName
                 };
 
-                blockNumber++;
+                var tempMatch = new TeamDto[2];
+                var teamA = await BracketContext.Teams.FirstOrDefaultAsync(i => i.Id == match.TeamA.Id);
+                var teamADto = new TeamDto
+                {
+                    Id = teamA.Id,
+                    Name = teamA.Name,
+                    User = userForList
+                };
 
-                matches.Add(match);
+                var teamB = await BracketContext.Teams.FirstOrDefaultAsync(i => i.Id == match.TeamB.Id);
+                var teamBDto = new TeamDto
+                {
+                    Id = teamB.Id,
+                    Name = teamB.Name,
+                    User = userForList
+                };
+
+                tempMatch[0] = teamADto;
+                tempMatch[1] = teamBDto;
+
+                showMatches.Add(tempMatch);
             }
 
-            return matches;
+            return showMatches;
         }
     }
 }

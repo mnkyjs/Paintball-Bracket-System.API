@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Data;
-using il_y.BracketSystem.Core.Models;
-using il_y.BracketSystem.Core.Models.Dtos;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Data;
+using BracketSystem.Core.Models;
+using BracketSystem.Core.Models.Dtos;
+using BracketSystem.Core.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
-namespace il_y.BracketSystem.Web.Controllers
+namespace BracketSystem.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -70,6 +68,25 @@ namespace il_y.BracketSystem.Web.Controllers
             return CreatedAtAction(nameof(GetSingleRecord), new {teamToCreate.Id}, teamDto);
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var team = await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id);
+
+            if (team == null)
+                return BadRequest("Kein Team gefunden");
+
+            var currentUserId =
+                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            _user = await _unitOfWork.Users.GetById(currentUserId);
+
+            // if (team.CreatorId != _user.Id && !_user.IsAdmin()) return BadRequest("Du hast keine Berechtigung!");
+            await _unitOfWork.Teams.DeleteObjectById(id);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(200);
+        }
+
         [AllowAnonymous]
         [HttpGet("GetTeams")]
         public async Task<ActionResult<PagedResult<Team>>> FindTeams(int page = 1, int pageSize = 10,
@@ -86,7 +103,7 @@ namespace il_y.BracketSystem.Web.Controllers
         {
             var teams = await _unitOfWork.Teams.GetAllRecordsFromDatabase();
             var tempTeams = await _unitOfWork.Teams.FindByConditionList(filter: x => x.Name != "pause");
-            var teamDtoList = teams.Select(TeamDto.FromEntity).ToList().OrderBy(tn => tn.Name);
+            var teamDtoList = teams.ConvertAll(TeamDto.FromEntity).OrderBy(tn => tn.Name);
             return Ok(teamDtoList);
         }
 
@@ -119,26 +136,6 @@ namespace il_y.BracketSystem.Web.Controllers
 
             return CreatedAtAction(nameof(GetSingleRecord), new {team.Id}, teamDto);
         }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
-        {
-            var team = await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id);
-
-            if (team == null)
-                return BadRequest("Kein Team gefunden");
-
-            var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
-
-            // if (team.CreatorId != _user.Id && !_user.IsAdmin()) return BadRequest("Du hast keine Berechtigung!");
-            await _unitOfWork.Teams.DeleteObjectById(id);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(200);
-        }
-
         #endregion Methods
     }
 }

@@ -1,12 +1,11 @@
-using System;
+using BracketSystem.Core.Data.Repositories;
+using BracketSystem.Core.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Data.Repositories;
-using il_y.BracketSystem.Core.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 
-namespace il_y.BracketSystem.Core.Data
+namespace BracketSystem.Core.Data
 {
     public interface IUserRepo : IGenericRepository<User>
     {
@@ -34,17 +33,16 @@ namespace il_y.BracketSystem.Core.Data
             var users = await BracketContext.Users.OrderBy(x => x.UserName).Select(
                 user => new
                 {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Created = user.Created,
-                    TeamName = user.TeamName,
+                    user.Id,
+                    user.UserName,
+                    user.Created,
+                    user.TeamName,
                     Roles = (from userRole in user.UserRoles
                         join role in BracketContext.Roles
                             on userRole.RoleId
                             equals role.Id
                         select role.Name).ToList()
                 }).ToListAsync();
-            
             return users;
         }
     }

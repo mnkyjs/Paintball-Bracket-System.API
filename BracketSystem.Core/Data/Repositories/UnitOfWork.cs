@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Models.Entities;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
-namespace il_y.BracketSystem.Core.Data.Repositories
+namespace BracketSystem.Core.Data.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
@@ -11,32 +11,29 @@ namespace il_y.BracketSystem.Core.Data.Repositories
         private readonly ILogger<UnitOfWork> _logger;
         private FieldRepo _fieldRepo;
         private GenericRepository<Location> _locationRepo;
-        private UserRepo _userRepo;
         private MatchScheduleRepo _matchScheduleRepo;
         private TeamRepo _teamRepo;
-
+        private UserRepo _userRepo;
         public UnitOfWork(BracketContext context, ILogger<UnitOfWork> logger)
         {
             _context = context;
             _logger = logger;
         }
 
-        // Fields
-        public ITeamRepo Teams => _teamRepo ??= new TeamRepo(_context);
-
-        public IMatchScheduleRepo Matches =>
-            _matchScheduleRepo ??= new MatchScheduleRepo(_context);
-
         public IFieldRepo Fields => _fieldRepo ??= new FieldRepo(_context);
 
         public IGenericRepository<Location> Locations =>
-            _locationRepo ??= new GenericRepository<Location>(_context);
-        
+                    _locationRepo ??= new GenericRepository<Location>(_context);
+
+        public IMatchScheduleRepo Matches =>
+                    _matchScheduleRepo ??= new MatchScheduleRepo(_context);
+
+        // Fields
+        public ITeamRepo Teams => _teamRepo ??= new TeamRepo(_context);
         public IUserRepo Users =>
             _userRepo ??= new UserRepo(_context);
 
-
-        public async Task CompleteAsync()
+public async Task CompleteAsync()
         {
             try
             {

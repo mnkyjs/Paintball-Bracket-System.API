@@ -1,10 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace il_y.BracketSystem.Web.AspNetCore.Swagger
+namespace BracketSystem.Web.AspNetCore.Swagger
 {
     public class SecurityRequirementsOperationFilter : IOperationFilter
     {

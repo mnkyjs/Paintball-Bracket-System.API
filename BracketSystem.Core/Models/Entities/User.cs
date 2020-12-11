@@ -1,10 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
-namespace il_y.BracketSystem.Core.Models.Entities
+namespace BracketSystem.Core.Models.Entities
 {
     public class User : IdentityUser<int>
     {

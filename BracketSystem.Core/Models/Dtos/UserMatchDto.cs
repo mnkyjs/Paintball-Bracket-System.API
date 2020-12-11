@@ -1,9 +1,9 @@
-﻿using System;
+﻿using BracketSystem.Core.Models.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using il_y.BracketSystem.Core.Models.Entities;
 
-namespace il_y.BracketSystem.Core.Models.Dtos
+namespace BracketSystem.Core.Models.Dtos
 {
     public class UserMatchDto
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace il_y.BracketSystem.Core.Models.Entities
+namespace BracketSystem.Core.Models.Entities
 {
     public class Location
     {

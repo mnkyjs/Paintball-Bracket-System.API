@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Models.Entities;
+using System.ComponentModel.DataAnnotations;
 
-namespace il_y.BracketSystem.Core.Models.Dtos
+namespace BracketSystem.Core.Models.Dtos
 {
     public class UserForRegisterDto : BaseDto<User>
     {

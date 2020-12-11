@@ -2,30 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace il_y.BracketSystem.Core.Data
+namespace BracketSystem.Core.Data
 {
     public static class IQueryableExtensions
     {
-        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> query, string propertyName, IComparer<object> comparer = null)
-        {
-            return CallOrderedQueryable(query, "OrderBy", propertyName, comparer);
-        }
-
-        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> query, string propertyName, IComparer<object> comparer = null)
-        {
-            return CallOrderedQueryable(query, "OrderByDescending", propertyName, comparer);
-        }
-
-        public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> query, string propertyName, IComparer<object> comparer = null)
-        {
-            return CallOrderedQueryable(query, "ThenBy", propertyName, comparer);
-        }
-
-        public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> query, string propertyName, IComparer<object> comparer = null)
-        {
-            return CallOrderedQueryable(query, "ThenByDescending", propertyName, comparer);
-        }
-
         /// <summary>
         /// Builds the Queryable functions using a TSource property name.
         /// </summary>
@@ -56,6 +36,26 @@ namespace il_y.BracketSystem.Core.Data
                         Expression.Lambda(body, param)
                     )
                 );
+        }
+
+        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> query, string propertyName, IComparer<object> comparer = null)
+        {
+            return CallOrderedQueryable(query, "OrderBy", propertyName, comparer);
+        }
+
+        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> query, string propertyName, IComparer<object> comparer = null)
+        {
+            return CallOrderedQueryable(query, "OrderByDescending", propertyName, comparer);
+        }
+
+        public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> query, string propertyName, IComparer<object> comparer = null)
+        {
+            return CallOrderedQueryable(query, "ThenBy", propertyName, comparer);
+        }
+
+        public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> query, string propertyName, IComparer<object> comparer = null)
+        {
+            return CallOrderedQueryable(query, "ThenByDescending", propertyName, comparer);
         }
     }
 }

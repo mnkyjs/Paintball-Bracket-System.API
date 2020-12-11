@@ -1,4 +1,4 @@
-namespace il_y.BracketSystem.Core.Models.Dtos
+namespace BracketSystem.Core.Models.Dtos
 {
     public class RoleEditDto
     {

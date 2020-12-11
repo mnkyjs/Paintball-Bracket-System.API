@@ -1,7 +1,7 @@
-﻿using System;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Models.Entities;
+using System;
 
-namespace il_y.BracketSystem.Core.Models.Dtos
+namespace BracketSystem.Core.Models.Dtos
 {
     public class UserForListDto : BaseDto<User>
     {

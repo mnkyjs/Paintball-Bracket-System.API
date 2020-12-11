@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace il_y.BracketSystem.Core.Models.Entities
+namespace BracketSystem.Core.Models.Entities
 {
     public class Paintballfield
     {

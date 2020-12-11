@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Data;
-using il_y.BracketSystem.Core.Helpers;
-using il_y.BracketSystem.Core.Models.Dtos;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Data;
+using BracketSystem.Core.Helpers;
+using BracketSystem.Core.Models.Dtos;
+using BracketSystem.Core.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
-namespace il_y.BracketSystem.Web.Controllers
+namespace BracketSystem.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -121,14 +121,5 @@ namespace il_y.BracketSystem.Web.Controllers
             return Ok(matches);
         }
 
-        [HttpGet("[action]")]
-        public async Task<ActionResult<List<BlockDto>>> GetMatchesByDateAndUser(DateTime time, string name)
-        {
-            var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
-            var matches = await _unitOfWork.Matches.GetMatchesByDateAndUser(time, _user, name).ConfigureAwait(true);
-            return Ok(matches);
-        }
     }
 }

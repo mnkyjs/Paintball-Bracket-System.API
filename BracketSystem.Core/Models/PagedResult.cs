@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace il_y.BracketSystem.Core.Models
+namespace BracketSystem.Core.Models
 {
     public class PagedResult<T>
     {

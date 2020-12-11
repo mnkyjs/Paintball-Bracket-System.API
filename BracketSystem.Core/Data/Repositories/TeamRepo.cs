@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using BracketSystem.Core.Models;
+using BracketSystem.Core.Models.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Models;
-using il_y.BracketSystem.Core.Models.Entities;
-using Microsoft.EntityFrameworkCore;
-using Serilog;
 
-namespace il_y.BracketSystem.Core.Data.Repositories
+namespace BracketSystem.Core.Data.Repositories
 {
     public class TeamRepo : GenericRepository<Team>, ITeamRepo
     {
@@ -27,15 +26,6 @@ namespace il_y.BracketSystem.Core.Data.Repositories
 
         #region Methods
 
-        public async Task<List<Team>> GetAllRecordsFromDatabase()
-        {
-            var tempTeams = await BracketContext.Teams.Include(u => u.Creator).ToListAsync();
-
-            // Log.Information("Just a small logging Test {Data}", teams);
-
-            return tempTeams.Where(team => team.Name != "pause").ToList();
-        }
-
         public async Task<PagedResult<Team>> FindTeams(int page = 1, int pageSize = 10, string filter = null,
             string sortColumn = "Name",
             string sortOrder = "asc")
@@ -44,8 +34,6 @@ namespace il_y.BracketSystem.Core.Data.Repositories
             bool sortAscending = string.IsNullOrEmpty(sortOrder) || sortOrder == "asc";
             IQueryable<Team> query;
             Task<int> count;
-            
-            
 
             if (string.IsNullOrEmpty(filter))
             {
@@ -73,6 +61,14 @@ namespace il_y.BracketSystem.Core.Data.Repositories
             return new PagedResult<Team>(await items, await count, page, pageSize);
         }
 
+        public async Task<List<Team>> GetAllRecordsFromDatabase()
+        {
+            var tempTeams = await BracketContext.Teams.Include(u => u.Creator).ToListAsync();
+
+            // Log.Information("Just a small logging Test {Data}", teams);
+
+            return tempTeams.Where(team => team.Name != "pause").ToList();
+        }
         #endregion Methods
     }
 }

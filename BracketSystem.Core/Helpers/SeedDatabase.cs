@@ -1,123 +1,27 @@
-﻿using System;
+﻿using BracketSystem.Core.Models.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using il_y.BracketSystem.Core.Models.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Serilog;
 
-namespace il_y.BracketSystem.Core.Helpers
+namespace BracketSystem.Core.Helpers
 {
     public class SeedDatabase
     {
-        private readonly BracketContext _context;
-        private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
         private readonly IConfiguration _config;
-
+        private readonly BracketContext _context;
+        private readonly RoleManager<Role> _roleManager;
+        private readonly UserManager<User> _userManager;
         public SeedDatabase(BracketContext context, UserManager<User> userManager, RoleManager<Role> roleManager, IConfiguration config)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
             _config = config;
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
-        }
-
-        public void SeedUsers()
-        {
-            // Look for any users.
-            // if (_userManager.Users.Any()) return; // DB has been seeded
-
-            var adminUser = new User
-            {
-                UserName = _config["User:Name"],
-                Created = DateTime.Now,
-                // RoleId = (int) Role.RootAdmin,
-                TeamName = "Team Braindead",
-            };
-
-            var adminAccount = _userManager.CreateAsync(adminUser, _config["User:Password"]).Result;
-
-            if (!adminAccount.Succeeded) return;
-
-            var admin = _userManager.FindByNameAsync(_config["User:Name"]).Result;
-            _userManager.AddToRolesAsync(admin, new[] {"Member", "Admin", "RootAdmin", "Moderator"});
-            Log.Information("Admin account created!");
-        }
-
-        public void SeedRole()
-        {
-            // Look for any roles.
-            if (_roleManager.Roles.Any()) return; // DB has been seeded
-
-            var roles = new List<Role>
-            {
-                new Role {Name = "Member"},
-                new Role {Name = "Admin"},
-                new Role {Name = "RootAdmin"},
-                new Role {Name = "Moderator"},
-            };
-
-            foreach (var role in roles)
-            {
-                _roleManager.CreateAsync(role).Wait();
-            }
-        }
-
-        public void SeedTeams()
-        {
-            // Look for any teams.
-            if (_context.Teams.Any()) return; // DB has been seeded
-
-            _context.Teams.AddRange(
-                new Team
-                {
-                    Name = "Team Braindead",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                },
-                new Team
-                {
-                    Name = "Ballistic Göttingen",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                },
-                new Team
-                {
-                    Name = "Hannover Painthers",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                },
-                new Team
-                {
-                    Name = "Unbreakable Hannover",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                },
-                new Team
-                {
-                    Name = "pause",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                },
-                new Team
-                {
-                    Name = "Team Ghostbusters",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                },
-                new Team
-                {
-                    Name = "Rio Bravo",
-                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
-                }
-            );
-            _context.SaveChanges();
         }
 
         public void SeedLocation()
@@ -228,6 +132,99 @@ namespace il_y.BracketSystem.Core.Helpers
                 }
             );
             _context.SaveChanges();
+        }
+
+        public void SeedRole()
+        {
+            // Look for any roles.
+            if (_roleManager.Roles.Any()) return; // DB has been seeded
+
+            var roles = new List<Role>
+            {
+                new Role {Name = "Member"},
+                new Role {Name = "Admin"},
+                new Role {Name = "RootAdmin"},
+                new Role {Name = "Moderator"},
+            };
+
+            foreach (var role in roles)
+            {
+                _roleManager.CreateAsync(role).Wait();
+            }
+        }
+
+        public void SeedTeams()
+        {
+            // Look for any teams.
+            if (_context.Teams.Any()) return; // DB has been seeded
+
+            _context.Teams.AddRange(
+                new Team
+                {
+                    Name = "Team Braindead",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                },
+                new Team
+                {
+                    Name = "Ballistic Göttingen",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                },
+                new Team
+                {
+                    Name = "Hannover Painthers",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                },
+                new Team
+                {
+                    Name = "Unbreakable Hannover",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                },
+                new Team
+                {
+                    Name = "pause",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                },
+                new Team
+                {
+                    Name = "Team Ghostbusters",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                },
+                new Team
+                {
+                    Name = "Rio Bravo",
+                    Creator = _context.Users.FirstOrDefault(i => i.UserName == _config["User:Name"])
+                }
+            );
+            _context.SaveChanges();
+        }
+
+        public void SeedUsers()
+        {
+            // Look for any users.
+            // if (_userManager.Users.Any()) return; // DB has been seeded
+
+            var adminUser = new User
+            {
+                UserName = _config["User:Name"],
+                Created = DateTime.Now,
+                // RoleId = (int) Role.RootAdmin,
+                TeamName = "Team Braindead",
+            };
+
+            var adminAccount = _userManager.CreateAsync(adminUser, _config["User:Password"]).Result;
+
+            if (!adminAccount.Succeeded) return;
+
+            var admin = _userManager.FindByNameAsync(_config["User:Name"]).Result;
+            _userManager.AddToRolesAsync(admin, new[] { "Member", "Admin", "RootAdmin", "Moderator" });
+            Log.Information("Admin account created!");
+        }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using var hmac = new HMACSHA512();
+            passwordSalt = hmac.Key;
+            passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
         }
     }
 }

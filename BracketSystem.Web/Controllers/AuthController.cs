@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using il_y.BracketSystem.Core.Data;
-using il_y.BracketSystem.Core.Models.Dtos;
-using il_y.BracketSystem.Core.Models.Entities;
+﻿using BracketSystem.Core.Models.Dtos;
+using BracketSystem.Core.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace il_y.BracketSystem.Web.Controllers
+namespace BracketSystem.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -21,10 +20,9 @@ namespace il_y.BracketSystem.Web.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<Role> _roleManager;
-
+        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
         public AuthController(IConfiguration config, UserManager<User> userManager,
             SignInManager<User> signInManager, RoleManager<Role> roleManager)
         {
@@ -33,19 +31,6 @@ namespace il_y.BracketSystem.Web.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
-        }
-
-        [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserForRegisterDto userForRegisterDto)
-        {
-            var userToCreate = new User();
-            userForRegisterDto.UpdateEntity(userToCreate);
-            userToCreate.Created = DateTime.Now;
-
-            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password);
-            await _userManager.AddToRoleAsync(userToCreate, "Member");
-
-            return !result.Succeeded ? (ActionResult) BadRequest() : Ok(userToCreate);
         }
 
         [HttpPost("login")]
@@ -71,6 +56,18 @@ namespace il_y.BracketSystem.Web.Controllers
             });
         }
 
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register(UserForRegisterDto userForRegisterDto)
+        {
+            var userToCreate = new User();
+            userForRegisterDto.UpdateEntity(userToCreate);
+            userToCreate.Created = DateTime.Now;
+
+            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password);
+            await _userManager.AddToRoleAsync(userToCreate, "Member");
+
+            return !result.Succeeded ? (ActionResult) BadRequest() : Ok(userToCreate);
+        }
         private async  Task<string> GenerateJwtToken(User user)
         {
             var claims = new List<Claim>

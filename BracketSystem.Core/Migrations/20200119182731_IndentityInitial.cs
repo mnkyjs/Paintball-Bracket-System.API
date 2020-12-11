@@ -1,8 +1,8 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using System;
 
-namespace il_y.BracketSystem.Core.Migrations
+namespace BracketSystem.Core.Migrations
 {
     public partial class IndentityInitial : Migration
     {

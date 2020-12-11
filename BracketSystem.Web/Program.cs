@@ -1,10 +1,10 @@
-﻿using System;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System;
 
-namespace il_y.BracketSystem.Web
+namespace BracketSystem.Web
 {
     public static class Program
     {

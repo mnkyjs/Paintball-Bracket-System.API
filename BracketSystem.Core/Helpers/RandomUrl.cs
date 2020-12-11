@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace il_y.BracketSystem.Core.Helpers
+namespace BracketSystem.Core.Helpers
 {
     /// <summary>
     ///     RandomURL class generates Random URLs for applications.
     /// </summary>
     public static class RandomUrl
     {
-        // List of characters and numbers to be used...  
-        private static readonly List<int> Numbers = new List<int> {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
-
         private static readonly List<char> Characters = new List<char>
         {
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
@@ -19,6 +16,8 @@ namespace il_y.BracketSystem.Core.Helpers
             'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '-', '_'
         };
 
+        // List of characters and numbers to be used...  
+        private static readonly List<int> Numbers = new List<int> {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
         public static string GetUrl()
         {
             var url = "";

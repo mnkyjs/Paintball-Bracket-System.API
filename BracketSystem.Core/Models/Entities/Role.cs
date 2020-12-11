@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
 
-namespace il_y.BracketSystem.Core.Models.Entities
+namespace BracketSystem.Core.Models.Entities
 {
     public class Role : IdentityRole<int>
     {
