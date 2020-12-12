@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -20,30 +21,28 @@ namespace BracketSystem.Web.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly RoleManager<Role> _roleManager;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         public AuthController(IConfiguration config, UserManager<User> userManager,
-            SignInManager<User> signInManager, RoleManager<Role> roleManager)
+            SignInManager<User> signInManager)
         {
             _config = config;
 
             _userManager = userManager;
             _signInManager = signInManager;
-            _roleManager = roleManager;
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<object>> Login(UserForLoginDto userForLoginDto)
         {
-            var user = await _userManager.FindByNameAsync(userForLoginDto.Username);
+            var user = await _userManager.FindByNameAsync(userForLoginDto.Username).ConfigureAwait(false);
 
             if (user == null)
             {
                 return NotFound("User not found");
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, userForLoginDto.Password, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, userForLoginDto.Password, lockoutOnFailure: false).ConfigureAwait(false);
 
             if (!result.Succeeded) return Unauthorized();
 
@@ -52,7 +51,7 @@ namespace BracketSystem.Web.Controllers
             return Ok(new
             {
                 token = GenerateJwtToken(user).Result,
-                userForView
+                userForView,
             });
         }
 
@@ -63,8 +62,8 @@ namespace BracketSystem.Web.Controllers
             userForRegisterDto.UpdateEntity(userToCreate);
             userToCreate.Created = DateTime.Now;
 
-            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password);
-            await _userManager.AddToRoleAsync(userToCreate, "Member");
+            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password).ConfigureAwait(false);
+            await _userManager.AddToRoleAsync(userToCreate, "Member").ConfigureAwait(false);
 
             return !result.Succeeded ? (ActionResult) BadRequest() : Ok(userToCreate);
         }
@@ -72,11 +71,11 @@ namespace BracketSystem.Web.Controllers
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Name, user.UserName),
             };
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
 
             foreach (var role in roles)
             {
@@ -90,7 +89,7 @@ namespace BracketSystem.Web.Controllers
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds
+                SigningCredentials = creds,
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

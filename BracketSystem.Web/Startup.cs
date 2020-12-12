@@ -94,20 +94,22 @@ namespace BracketSystem.Web
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             if (HostingEnvironment.IsDevelopment())
+            {
                 // Register the Swagger generator, defining 1 or more Swagger documents
-                services.AddSwaggerGen(c =>
-                {
-                    c.SwaggerDoc("v1", new OpenApiInfo {Title = "BracketSystem API", Version = "v1"});
-                    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-                    {
-                        Description =
-                            "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\"",
-                        In = ParameterLocation.Header,
-                        Name = "Authorization",
-                        Scheme = "apiKey"
-                    });
-                    c.OperationFilter<SecurityRequirementsOperationFilter>();
-                });
+                _ = services.AddSwaggerGen(c =>
+                  {
+                      c.SwaggerDoc("v1", new OpenApiInfo { Title = "BracketSystem API", Version = "v1" });
+                      c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                      {
+                          Description =
+                              "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\"",
+                          In = ParameterLocation.Header,
+                          Name = "Authorization",
+                          Scheme = "apiKey",
+                      });
+                      c.OperationFilter<SecurityRequirementsOperationFilter>();
+                  });
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -172,7 +174,7 @@ namespace BracketSystem.Web
                        new SymmetricSecurityKey(
                            Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
                    ValidateIssuer = false,
-                   ValidateAudience = false
+                   ValidateAudience = false,
                };
            });
         }

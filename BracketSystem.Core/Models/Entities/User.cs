@@ -10,10 +10,7 @@ namespace BracketSystem.Core.Models.Entities
 
         public virtual ICollection<Paintballfield> PaintballFields { get; set; } = new List<Paintballfield>();
         public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
-        
         public string TeamName { get; set; }
-
         public virtual ICollection<UserRole> UserRoles { get; set; }
-        
     }
 }

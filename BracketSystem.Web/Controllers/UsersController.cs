@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -35,14 +36,14 @@ namespace BracketSystem.Web.Controllers
         [Authorize(Policy = "Root")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
-            var user = await _unitOfWork.Users.GetById(id);
+            var user = await _unitOfWork.Users.GetById(id).ConfigureAwait(false);
 
             var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
+                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+            _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
 
-            await _unitOfWork.Users.DeleteObjectById(user.Id);
-            await _unitOfWork.CompleteAsync();
+            await _unitOfWork.Users.DeleteObjectById(user.Id).ConfigureAwait(false);
+            await _unitOfWork.CompleteAsync().ConfigureAwait(false);
 
             return Ok(200);
         }
@@ -51,44 +52,44 @@ namespace BracketSystem.Web.Controllers
         [HttpPost("{userName}")]
         public async Task<ActionResult<IList<string>>> EditRoles(string userName, RoleEditDto roleEditDto)
         {
-            var user = await _userManager.FindByNameAsync(userName);
+            var user = await _userManager.FindByNameAsync(userName).ConfigureAwait(false);
 
-            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRoles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
 
             var selectedRoles = roleEditDto.RoleNames;
 
-            selectedRoles ??= new string[] { };
+            selectedRoles ??= Array.Empty<string>();
 
-            var result = await _userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles));
+            var result = await _userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles, StringComparer.Ordinal)).ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
                 return BadRequest("Failed to add to roles");
             }
 
-            result = await _userManager.RemoveFromRolesAsync(user, userRoles.Except(selectedRoles));
+            result = await _userManager.RemoveFromRolesAsync(user, userRoles.Except(selectedRoles, StringComparer.Ordinal)).ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
                 return BadRequest("Failed to remove to roles");
             }
 
-            return Ok(await _userManager.GetRolesAsync(user));
+            return Ok(await _userManager.GetRolesAsync(user).ConfigureAwait(false));
         }
 
         [AllowAnonymous]
         [HttpGet("[action]")]
         public async Task<ActionResult<List<KeyPairValueDto>>> GetSharedMatches()
         {
-            if (User == null)
+            if (User.Identity.Name == null)
             {
                 return NotFound("Benutzer konnte nicht gefunden werden.");
             }
 
             var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
-            var matches = await _unitOfWork.Matches.GetMatchesByUser(_user.Id);
+                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+            _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
+            var matches = await _unitOfWork.Matches.GetMatchesByUser(_user.Id).ConfigureAwait(false);
             var listOfMatches = matches.ConvertAll(match =>
             {
                 if (match.Date != null)
@@ -108,10 +109,10 @@ namespace BracketSystem.Web.Controllers
                 var keyPair = new KeyPairValueDto
                 {
                     Name = item.Name,
-                    Date = item.Date
+                    Date = item.Date,
                 };
 
-                var containsItem = listToView.Any(n => n.Name == keyPair.Name);
+                var containsItem = listToView.Any(n => string.Equals(n.Name, keyPair.Name, StringComparison.Ordinal));
 
                 if (!containsItem) listToView.Add(keyPair);
             }
@@ -124,11 +125,11 @@ namespace BracketSystem.Web.Controllers
         {
             try
             {
-                var user = await _unitOfWork.Users.GetById(id);
+                var user = await _unitOfWork.Users.GetById(id).ConfigureAwait(false);
                 var userForListDto = UserForListDto.FromEntity(user);
 
-                var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                _user = await _unitOfWork.Users.GetById(currentUserId);
+                var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+                _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
 
                 // only owner has access own records
                 if (id != _user.Id) return Unauthorized();
@@ -149,31 +150,31 @@ namespace BracketSystem.Web.Controllers
             // only allow admins to access other user records
 
             var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
+                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+            _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
 
-            IEnumerable<object> users = await _unitOfWork.Users.UserListWithRoles();
+            IEnumerable<object> users = await _unitOfWork.Users.UserListWithRoles().ConfigureAwait(false);
 
             return Ok(users);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAsync(int id, User userDto)
         {
-            userDto.UserName = userDto.UserName.ToLower();
-            var user = await _unitOfWork.Users.GetById(id);
+            userDto.UserName = userDto.UserName.ToLower(CultureInfo.InvariantCulture);
+            var user = await _unitOfWork.Users.GetById(id).ConfigureAwait(false);
 
             var currentUserId =
-                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _user = await _unitOfWork.Users.GetById(currentUserId);
+                Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+            _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
 
-            var userToCheck = await _unitOfWork.Users.FindByConditionSingle(x => x.UserName == userDto.UserName);
+            var userToCheck = await _unitOfWork.Users.FindByConditionSingle(x => x.UserName == userDto.UserName).ConfigureAwait(false);
             if (userToCheck != null && userToCheck.Id != user.Id)
                 return BadRequest($"{userDto.UserName} existiert bereits!");
 
             user.UserName = userDto.UserName;
             user.TeamName = userDto.TeamName;
 
-            await _unitOfWork.CompleteAsync();
+            await _unitOfWork.CompleteAsync().ConfigureAwait(false);
 
             return Ok(200);
         }

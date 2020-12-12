@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BracketSystem.Web.Controllers
@@ -16,17 +15,17 @@ namespace BracketSystem.Web.Controllers
     {
         private readonly RoleManager<Role> _roleManager;
 
-        public RoleController(RoleManager<Core.Models.Entities.Role> roleManager)
+        public RoleController(RoleManager<Role> roleManager)
         {
             _roleManager = roleManager;
         }
 
         // GET
-        [HttpGet]
+        [HttpGet("getAllRoles")]
         // [Authorize(Policy = "Root")]
         public async Task<ActionResult<List<string>>> GetRoles()
         {
-            var roles = await _roleManager.Roles.ToListAsync();
+            var roles = await _roleManager.Roles.ToListAsync().ConfigureAwait(false);
             var roleNames = roles.ConvertAll(role => role.Name);
 
             return Ok(roleNames);

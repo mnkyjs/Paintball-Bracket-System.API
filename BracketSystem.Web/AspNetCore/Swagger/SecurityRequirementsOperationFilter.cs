@@ -12,10 +12,10 @@ namespace BracketSystem.Web.AspNetCore.Swagger
         {
             // Policy names map to scopes
             var requiredScopes = context.MethodInfo
-                .GetCustomAttributes(true)
+                .GetCustomAttributes(inherit: true)
                 .OfType<AuthorizeAttribute>()
                 .Select(attr => attr.Policy)
-                .Distinct();
+                .Distinct(System.StringComparer.Ordinal);
 
             if (requiredScopes.Any())
             {
@@ -24,15 +24,15 @@ namespace BracketSystem.Web.AspNetCore.Swagger
 
                 var oAuthScheme = new OpenApiSecurityScheme
                 {
-                    Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "oauth2"}
+                    Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "oauth2"},
                 };
 
                 operation.Security = new List<OpenApiSecurityRequirement>
                 {
                     new OpenApiSecurityRequirement
                     {
-                        [oAuthScheme] = requiredScopes.ToList()
-                    }
+                        [oAuthScheme] = requiredScopes.ToList(),
+                    },
                 };
             }
         }
