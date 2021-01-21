@@ -31,7 +31,7 @@ namespace BracketSystem.Web.Controllers
         #region Methods
 
         [AllowAnonymous]
-        [HttpPost("create")]
+        [HttpPost("create", Name = "PostField")]
         public async Task<ActionResult<FieldDto>> Create(FieldDto fieldDto)
         {
             // validate request
@@ -63,7 +63,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [Authorize(Policy = "Root")]
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteField")]
         public async Task<ActionResult> Delete([FromRoute] int id)
         {
             var field = await _unitOfWork.Fields.FindByConditionSingle(x => x.Id == id);
@@ -82,7 +82,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("getFieldWithMatches")]
+        [HttpGet("GetFieldWithMatches", Name = "GetFieldWithMatches")]
         public async Task<ActionResult<List<FieldDto>>> GetAllMatchesByField()
         {
             try
@@ -98,7 +98,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet]
+        [HttpGet("GetListOfAllFields", Name = "GetListOfAllFields")]
         public async Task<ActionResult<List<FieldDto>>> GetAllRecords()
         {
             var dbModel =
@@ -110,7 +110,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetFieldById")]
         public async Task<ActionResult<FieldDto>> GetSingleRecord(int id)
         {
             var fieldDto =
@@ -122,8 +122,9 @@ namespace BracketSystem.Web.Controllers
 
             return BadRequest();
         }
+
         [Authorize(Policy = "Root")]
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "UpdateField")]
         public async Task<ActionResult<FieldDto>> PutAsync(int id, FieldDto fieldDto)
         {
             fieldDto.Name = fieldDto.Name.ToLower();
@@ -146,6 +147,7 @@ namespace BracketSystem.Web.Controllers
 
             return CreatedAtAction(nameof(GetSingleRecord), new {field.Id}, fieldDto);
         }
+
         #endregion Methods
     }
 }

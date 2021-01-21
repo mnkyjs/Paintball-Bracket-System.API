@@ -1,5 +1,4 @@
-﻿
-using BracketSystem.Core.Models.Dtos;
+﻿using BracketSystem.Core.Models.Dtos;
 using BracketSystem.Core.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ namespace BracketSystem.Core.Data
 
         Task<List<TeamDto[]>> GetMatches(User user);
 
-        Task<List<TeamDto[]>> GetMatchesByDate(DateTime dateTime, string name);
+        Task<IEnumerable<BlockDto>> GetMatchesByDate(DateTime dateTime, string name);
 
         Task<List<Match>> GetMatchesByDateAndUserToDelete(DateTime dateTime, User user, string name);
 

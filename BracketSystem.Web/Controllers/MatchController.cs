@@ -29,7 +29,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost(Name =  "createSchedule")]
+        [HttpPost(Name = "CreateSchedule")]
         public async Task<ActionResult<List<TeamDto[]>>> CreateSchedule(CreateScheduleDto createScheduleDto)
         {
             var teamDtos = new List<TeamDto>();
@@ -50,39 +50,42 @@ namespace BracketSystem.Web.Controllers
 
             var parsedDate = DateTime.Parse(createScheduleDto.Date, CultureInfo.InvariantCulture);
             var matches = await _unitOfWork.Matches.CreateSchedule(teamDtos, _user, _randomUrl, parsedDate,
-                createScheduleDto.PaintballfieldId, createScheduleDto.Name, createScheduleDto.AddClashToAnExistingOne).ConfigureAwait(false);
+                    createScheduleDto.PaintballfieldId, createScheduleDto.Name,
+                    createScheduleDto.AddClashToAnExistingOne)
+                .ConfigureAwait(false);
 
             await _unitOfWork.CompleteAsync().ConfigureAwait(false);
 
             return Ok(matches);
         }
 
-        [HttpDelete(Name =  "deleteAllMatch")]
+        [HttpDelete(Name = "DeleteAllMatch")]
         public async Task<IActionResult> DeleteAllMatch()
         {
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
             _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
-            var matchestoDelete = await _unitOfWork.Matches.DeleteMatches(_user).ConfigureAwait(false);
-            await _unitOfWork.Matches.RemoveRange(matchestoDelete).ConfigureAwait(false);
+            var matchesToDelete = await _unitOfWork.Matches.DeleteMatches(_user).ConfigureAwait(false);
+            await _unitOfWork.Matches.RemoveRange(matchesToDelete).ConfigureAwait(false);
             await _unitOfWork.CompleteAsync().ConfigureAwait(false);
             return Ok(200);
         }
 
-        [HttpDelete("{time}/{name}", Name = "deleteMatch")]
+        [HttpDelete("{time}/{name}", Name = "DeleteMatch")]
         public async Task<IActionResult> DeleteMatch(DateTime time, string name)
         {
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
             _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
-            var matchestoDelete = await _unitOfWork.Matches.GetMatchesByDateAndUserToDelete(time, _user, name).ConfigureAwait(false);
+            var matchestoDelete = await _unitOfWork.Matches.GetMatchesByDateAndUserToDelete(time, _user, name)
+                .ConfigureAwait(false);
 
             await _unitOfWork.Matches.RemoveRange(matchestoDelete).ConfigureAwait(false);
             await _unitOfWork.CompleteAsync().ConfigureAwait(false);
             return Ok(200);
         }
 
-        [HttpGet(Name =  "getMatches")]
+        [HttpGet("GetAllMatches", Name = "GetMatches")]
         public async Task<ActionResult<List<BlockDto>>> GetAllMatches()
         {
             try
@@ -100,7 +103,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet(Name = "getByField")]
+        [HttpGet("GetByField", Name = "GetByField")]
         public async Task<ActionResult<List<BlockDto>>> GetAllMatchesByField(int paintballfield)
         {
             try
@@ -116,9 +119,9 @@ namespace BracketSystem.Web.Controllers
 
         [AllowAnonymous]
         [HttpGet("{time}/{name}", Name = "GetMatchesByDate")]
-        public async Task<ActionResult<List<BlockDto>>> GetMatchesByDate(DateTime time, string name)
+        public async Task<ActionResult<IEnumerable<BlockDto>>> GetMatchesByDate(DateTime time, string name)
         {
-            var matches = await _unitOfWork.Matches.GetMatchesByDate(time, name).ConfigureAwait(true);
+            IEnumerable<BlockDto> matches = await _unitOfWork.Matches.GetMatchesByDate(time, name).ConfigureAwait(true);
             return Ok(matches);
         }
     }

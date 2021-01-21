@@ -21,7 +21,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         // GET
-        [HttpGet("getAllRoles")]
+        [HttpGet(Name = "GetAllRoles")]
         // [Authorize(Policy = "Root")]
         public async Task<ActionResult<List<string>>> GetRoles()
         {

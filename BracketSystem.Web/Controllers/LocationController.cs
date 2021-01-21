@@ -26,7 +26,7 @@ namespace BracketSystem.Web.Controllers
 
         #region Methods
 
-        [HttpPost("create")]
+        [HttpPost(Name = "PostLocation")]
         public async Task<ActionResult<Location>> Create(Location location)
         {
             var currentUserId =
@@ -46,7 +46,7 @@ namespace BracketSystem.Web.Controllers
             return CreatedAtAction(nameof(GetSingleRecord), new {locationToCreate.Id}, location);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteLocationById")]
         public async Task<IActionResult> Delete(Location location)
         {
             var currentUserId =
@@ -64,7 +64,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet]
+        [HttpGet(Name = "GetListOfAllLocations")]
         public async Task<ActionResult<IEnumerable<LocationDto>>> GetAllRecords()
         {
             var dbModel = await _unitOfWork.Locations.FindByConditionList(include: source => source.Include(x => x.Paintballfields));
@@ -73,7 +73,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetLocationById")]
         public async Task<ActionResult<Location>> GetSingleRecord(int id)
         {
             var location = await _unitOfWork.Locations.GetById(id).ConfigureAwait(true);
@@ -83,7 +83,7 @@ namespace BracketSystem.Web.Controllers
             return Ok(location);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "UpdateLocation")]
         public async Task<ActionResult<Location>> PutAsync(int id, Location location)
         {
             var currentUserId =

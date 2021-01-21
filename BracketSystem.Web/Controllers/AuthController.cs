@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace BracketSystem.Web.Controllers
         private readonly IConfiguration _config;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+
         public AuthController(IConfiguration config, UserManager<User> userManager,
             SignInManager<User> signInManager)
         {
@@ -33,63 +35,57 @@ namespace BracketSystem.Web.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<object>> Login(UserForLoginDto userForLoginDto)
+        public async Task<AuthModelDto> Login(UserForLoginDto userForLoginDto)
         {
             var user = await _userManager.FindByNameAsync(userForLoginDto.Username).ConfigureAwait(false);
 
             if (user == null)
             {
-                return NotFound("User not found");
+                return null;
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, userForLoginDto.Password, lockoutOnFailure: false).ConfigureAwait(false);
+            var result = await _signInManager
+                .CheckPasswordSignInAsync(user, userForLoginDto.Password, lockoutOnFailure: false)
+                .ConfigureAwait(false);
 
-            if (!result.Succeeded) return Unauthorized();
-
-            var userForView = UserFlatDto.FromEntity(user);
-
-            return Ok(new
-            {
-                token = GenerateJwtToken(user).Result,
-                userForView,
-            });
+            return !result.Succeeded ? null : new AuthModelDto {Token = GenerateJwtToken(user).Result};
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserForRegisterDto userForRegisterDto)
+        public async Task<ActionResult<AuthModelDto>> Register(UserForRegisterDto userForRegisterDto)
         {
             var userToCreate = new User();
             userForRegisterDto.UpdateEntity(userToCreate);
             userToCreate.Created = DateTime.Now;
 
-            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password).ConfigureAwait(false);
+            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password)
+                .ConfigureAwait(false);
             await _userManager.AddToRoleAsync(userToCreate, "Member").ConfigureAwait(false);
 
-            return !result.Succeeded ? (ActionResult) BadRequest() : Ok(userToCreate);
+            return !result.Succeeded ? (ActionResult) BadRequest() : Ok(new AuthModelDto {Token = GenerateJwtToken(userToCreate).Result});
         }
-        private async  Task<string> GenerateJwtToken(User user)
+
+        private async Task<string> GenerateJwtToken(User user)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Name, user.UserName),
+                new Claim("Team", user.TeamName)
             };
 
             var roles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
 
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds,
+                SigningCredentials = cred,
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

@@ -36,7 +36,8 @@ namespace BracketSystem.Web
 
         public void ConfigureDevelopmentServices(IServiceCollection services)
         {
-            services.AddDbContext<BracketContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
+            services.AddDbContext<BracketContext>(
+                x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
             );
 
             ConfigureServices(services);
@@ -44,18 +45,8 @@ namespace BracketSystem.Web
 
         public void ConfigureProductionServices(IServiceCollection services)
         {
-            services.AddDbContext<BracketContext>(options =>
-                {
-                    // if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    // {
-                    //     options.UseSqlServer(Configuration.GetConnectionString("DefaultConection"));
-                    // }
-                    // else
-                    // {
-                    options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
-                    // }
-                }
-            );
+            services.AddDbContext<BracketContext>(x =>
+                x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
             ConfigureServices(services);
         }
@@ -89,7 +80,16 @@ namespace BracketSystem.Web
                     })
                 .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Cors",
+                    corsPolicyBuilder => corsPolicyBuilder
+                        .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>())
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials()
+                        .Build());
+            });
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -97,18 +97,18 @@ namespace BracketSystem.Web
             {
                 // Register the Swagger generator, defining 1 or more Swagger documents
                 _ = services.AddSwaggerGen(c =>
-                  {
-                      c.SwaggerDoc("v1", new OpenApiInfo { Title = "BracketSystem API", Version = "v1" });
-                      c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-                      {
-                          Description =
-                              "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\"",
-                          In = ParameterLocation.Header,
-                          Name = "Authorization",
-                          Scheme = "apiKey",
-                      });
-                      c.OperationFilter<SecurityRequirementsOperationFilter>();
-                  });
+                {
+                    c.SwaggerDoc("v1", new OpenApiInfo {Title = "BracketSystem API", Version = "v1"});
+                    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                    {
+                        Description =
+                            "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\"",
+                        In = ParameterLocation.Header,
+                        Name = "Authorization",
+                        Scheme = "apiKey",
+                    });
+                    c.OperationFilter<SecurityRequirementsOperationFilter>();
+                });
             }
         }
 
@@ -152,13 +152,14 @@ namespace BracketSystem.Web
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            app.UseCors("Cors");
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers()
+                    .RequireCors("Cors");
                 endpoints.MapFallbackToController("Index", "Fallback");
             });
         }
@@ -166,26 +167,27 @@ namespace BracketSystem.Web
         private void AddAuthenticationScheme(IServiceCollection services)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-           {
-               options.TokenValidationParameters = new TokenValidationParameters
-               {
-                   ValidateIssuerSigningKey = true,
-                   IssuerSigningKey =
-                       new SymmetricSecurityKey(
-                           Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-                   ValidateIssuer = false,
-                   ValidateAudience = false,
-               };
-           });
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(
+                            Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                };
+            });
         }
 
-        private void AddPolicies(IServiceCollection services) {
+        private void AddPolicies(IServiceCollection services)
+        {
             services.AddAuthorization(options =>
-           {
-               options.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"));
-               options.AddPolicy("Moderator", policy => policy.RequireRole("RootAdmin", "Admin", "Moderator"));
-               options.AddPolicy("Root", policy => policy.RequireRole("RootAdmin"));
-           });
+            {
+                options.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("Moderator", policy => policy.RequireRole("RootAdmin", "Admin", "Moderator"));
+                options.AddPolicy("Root", policy => policy.RequireRole("RootAdmin"));
+            });
         }
     }
 }

@@ -2,6 +2,6 @@
 {
     public class AuthModelDto
     {
-        
+        public string Token { get; set; }
     }
 }

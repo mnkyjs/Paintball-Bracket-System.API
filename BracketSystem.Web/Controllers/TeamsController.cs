@@ -39,14 +39,14 @@ namespace BracketSystem.Web.Controllers
         #region Methods
 
         [AllowAnonymous]
-        [HttpPost("create")]
+        [HttpPost(Name = "PostTeam")]
         public async Task<ActionResult<TeamDto>> Create(TeamDto teamDto)
         {
             // validate request
 
             if (User.Identity.Name != null)
             {
-                string currentUserId =
+                var currentUserId =
                     User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 _user = await _userManager.FindByIdAsync(currentUserId).ConfigureAwait(false);
             }
@@ -69,13 +69,13 @@ namespace BracketSystem.Web.Controllers
             return CreatedAtAction(nameof(GetSingleRecord), new {teamToCreate.Id}, teamDto);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteTeam")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var team = await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id).ConfigureAwait(false);
 
             if (team == null)
-                return BadRequest("Kein Team gefunden");
+                return NotFound("Kein Team gefunden");
 
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
@@ -89,41 +89,45 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("GetTeams")]
+        [HttpGet("GetPagedListOfTeams",Name = "GetPagedListOfTeams")]
         public async Task<ActionResult<PagedResult<Team>>> FindTeams(int page = 1, int pageSize = 10,
             string filter = null, string sortColumn = "Name", string sortOrder = "asc")
         {
-            var teams = await _unitOfWork.Teams.FindTeams(page, pageSize, filter, sortColumn, sortOrder).ConfigureAwait(false);
+            var teams = await _unitOfWork.Teams.FindTeams(page, pageSize, filter, sortColumn, sortOrder)
+                .ConfigureAwait(false);
 
             return teams;
         }
 
         [AllowAnonymous]
-        [HttpGet]
+        [HttpGet("GetListOfAllTeams", Name = "GetListOfAllTeams")]
         public async Task<ActionResult<IOrderedEnumerable<TeamDto>>> GetAllRecords()
         {
             var teams = await _unitOfWork.Teams.GetAllRecordsFromDatabase().ConfigureAwait(false);
-            var tempTeams = await _unitOfWork.Teams.FindByConditionList(filter: x => x.Name != "pause").ConfigureAwait(false);
+            var tempTeams = await _unitOfWork.Teams.FindByConditionList(filter: x => x.Name != "pause")
+                .ConfigureAwait(false);
             var teamDtoList = teams.ConvertAll(TeamDto.FromEntity).OrderBy(tn => tn.Name);
             return Ok(teamDtoList);
         }
 
         [AllowAnonymous]
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetTeamById")]
         public async Task<ActionResult<TeamDto>> GetSingleRecord(int id)
         {
-            var teamDto = new TeamDto(await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id).ConfigureAwait(false));
+            var teamDto =
+                new TeamDto(await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id).ConfigureAwait(false));
 
             return Ok(teamDto);
         }
 
         [Authorize(Policy = "Root")]
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "UpdateTeam")]
         public async Task<ActionResult<TeamDto>> PutAsync(int id, TeamDto teamDto)
         {
             teamDto.Name = teamDto.Name.ToLower(CultureInfo.InvariantCulture);
             var team = await _unitOfWork.Teams.GetById(id).ConfigureAwait(false);
-            var teamNameCheck = await _unitOfWork.Teams.FindByConditionSingle(x => x.Name == teamDto.Name).ConfigureAwait(false);
+            var teamNameCheck = await _unitOfWork.Teams.FindByConditionSingle(x => x.Name == teamDto.Name)
+                .ConfigureAwait(false);
             var currentUserId =
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
             _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
@@ -137,6 +141,7 @@ namespace BracketSystem.Web.Controllers
 
             return CreatedAtAction(nameof(GetSingleRecord), new {team.Id}, teamDto);
         }
+
         #endregion Methods
     }
 }

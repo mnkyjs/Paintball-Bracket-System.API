@@ -32,7 +32,7 @@ namespace BracketSystem.Web.Controllers
             //InitUser();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteUser")]
         [Authorize(Policy = "Root")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -49,7 +49,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [Authorize(Policy = "Root")]
-        [HttpPost("{userName}")]
+        [HttpPost("{userName}", Name = "EditRoles")]
         public async Task<ActionResult<IList<string>>> EditRoles(string userName, RoleEditDto roleEditDto)
         {
             var user = await _userManager.FindByNameAsync(userName).ConfigureAwait(false);
@@ -60,14 +60,17 @@ namespace BracketSystem.Web.Controllers
 
             selectedRoles ??= Array.Empty<string>();
 
-            var result = await _userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles, StringComparer.Ordinal)).ConfigureAwait(false);
+            var result = await _userManager
+                .AddToRolesAsync(user, selectedRoles.Except(userRoles, StringComparer.Ordinal)).ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
                 return BadRequest("Failed to add to roles");
             }
 
-            result = await _userManager.RemoveFromRolesAsync(user, userRoles.Except(selectedRoles, StringComparer.Ordinal)).ConfigureAwait(false);
+            result = await _userManager
+                .RemoveFromRolesAsync(user, userRoles.Except(selectedRoles, StringComparer.Ordinal))
+                .ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
@@ -78,7 +81,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("[action]")]
+        [HttpGet("GetSharedMatches", Name = "GetSharedMatches")]
         public async Task<ActionResult<List<KeyPairValueDto>>> GetSharedMatches()
         {
             if (User.Identity.Name == null)
@@ -95,7 +98,7 @@ namespace BracketSystem.Web.Controllers
                 if (match.Date != null)
                 {
                     return new KeyPairValueDto
-                    { Name = match.MatchName, Date = (DateTime)match.Date };
+                        {Name = match.MatchName, Date = (DateTime) match.Date};
                 }
 
                 return null;
@@ -120,15 +123,16 @@ namespace BracketSystem.Web.Controllers
             return Ok(listToView);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult> GetUser(int id)
+        [HttpGet("{id}", Name = "GetUserById")]
+        public async Task<ActionResult> GetUserById(int id)
         {
             try
             {
                 var user = await _unitOfWork.Users.GetById(id).ConfigureAwait(false);
                 var userForListDto = UserForListDto.FromEntity(user);
 
-                var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+                var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value,
+                    CultureInfo.InvariantCulture);
                 _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
 
                 // only owner has access own records
@@ -143,9 +147,9 @@ namespace BracketSystem.Web.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetListOfUsers", Name = "GetListOfUsers")]
         [Authorize(Policy = "Root")]
-        public async Task<ActionResult<IEnumerable<object>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<object>>> GetListOfUsers()
         {
             // only allow admins to access other user records
 
@@ -157,8 +161,10 @@ namespace BracketSystem.Web.Controllers
 
             return Ok(users);
         }
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAsync(int id, User userDto)
+
+        [HttpPut("{id}", Name = "UpdateUser")]
+        [Authorize(Policy = "Root")]
+        public async Task<IActionResult> UpdateUser(int id, User userDto)
         {
             userDto.UserName = userDto.UserName.ToLower(CultureInfo.InvariantCulture);
             var user = await _unitOfWork.Users.GetById(id).ConfigureAwait(false);
@@ -167,7 +173,8 @@ namespace BracketSystem.Web.Controllers
                 Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
             _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
 
-            var userToCheck = await _unitOfWork.Users.FindByConditionSingle(x => x.UserName == userDto.UserName).ConfigureAwait(false);
+            var userToCheck = await _unitOfWork.Users.FindByConditionSingle(x => x.UserName == userDto.UserName)
+                .ConfigureAwait(false);
             if (userToCheck != null && userToCheck.Id != user.Id)
                 return BadRequest($"{userDto.UserName} existiert bereits!");
 
