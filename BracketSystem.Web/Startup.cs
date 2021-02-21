@@ -191,6 +191,7 @@ namespace BracketSystem.Web
 
         private void AddAuthenticationScheme(IServiceCollection services)
         {
+            var token = Configuration.GetValue<string>("AppSettings:Token");
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -198,7 +199,7 @@ namespace BracketSystem.Web
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.ASCII.GetBytes(Configuration.GetValue<string>("AppSettings:Token"))),
+                            Encoding.ASCII.GetBytes(token)),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                 };
