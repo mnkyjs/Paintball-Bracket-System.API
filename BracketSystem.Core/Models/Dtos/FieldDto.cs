@@ -5,8 +5,7 @@ using System.Linq;
 
 namespace BracketSystem.Core.Models.Dtos
 {
-    // TODO Maybe add the colletion of matches, if there is an error
-    public class FieldDto : BaseDto<Paintballfield>
+    public class FieldDto
     {
         public FieldDto()
         {
@@ -18,7 +17,7 @@ namespace BracketSystem.Core.Models.Dtos
             FromEntity(paintballField);
         }
 
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
         public string Street { get; set; }
         public string HouseNumber { get; set; }
@@ -31,6 +30,7 @@ namespace BracketSystem.Core.Models.Dtos
 
         public void FromEntity(Paintballfield entity)
         {
+            Id = entity.Id;
             Name = entity.Name;
             Street = entity.Street;
             HouseNumber = entity.HouseNumber;
@@ -44,6 +44,7 @@ namespace BracketSystem.Core.Models.Dtos
                 var keyPair = new KeyPairValueDto
                 {
                     Name = item.MatchName,
+                    Guid = item.Guid,
                     Date = (DateTime) item.Date
                 };
 
@@ -51,17 +52,6 @@ namespace BracketSystem.Core.Models.Dtos
 
                 if (!containsItem) NameAndDate.Add(keyPair);
             }
-        }
-
-        public override void UpdateEntity(Paintballfield entity)
-        {
-            entity.Name = Name;
-            entity.Street = Street;
-            entity.HouseNumber = HouseNumber;
-            entity.PostalCode = PostalCode;
-            entity.Place = Place;
-            entity.PhoneNumber = PhoneNumber;
-            entity.LocationId = LocationId;
         }
     }
 }

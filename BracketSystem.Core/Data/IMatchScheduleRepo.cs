@@ -8,14 +8,14 @@ namespace BracketSystem.Core.Data
 {
     public interface IMatchScheduleRepo : IGenericRepository<Match>
     {
-        Task<List<TeamDto[]>> CreateSchedule(List<TeamDto> teams, User user, string url, DateTime date,
+        Task<List<TeamDto[]>> CreateSchedule(List<TeamDto> teams, User user, DateTime date,
             int paintballFieldId, string clashName, bool addToExistingClashDay);
 
         Task<List<Match>> DeleteMatches(User user);
 
         Task<List<TeamDto[]>> GetMatches(User user);
 
-        Task<IEnumerable<BlockDto>> GetMatchesByDate(DateTime dateTime, string name);
+        Task<IEnumerable<BlockDto>> GetMatchesByGuid(string guid);
 
         Task<List<Match>> GetMatchesByDateAndUserToDelete(DateTime dateTime, User user, string name);
 

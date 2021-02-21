@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -19,7 +20,6 @@ namespace BracketSystem.Web.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<User> _userManager;
-        private string _randomUrl;
         private User _user;
 
         public MatchController(IUnitOfWork unitOfWork, UserManager<User> userManager)
@@ -32,11 +32,9 @@ namespace BracketSystem.Web.Controllers
         [HttpPost(Name = "CreateSchedule")]
         public async Task<ActionResult<List<TeamDto[]>>> CreateSchedule(CreateScheduleDto createScheduleDto)
         {
-            var teamDtos = new List<TeamDto>();
-
             if (User.Identity.Name != null)
             {
-                string currentUserId =
+                var currentUserId =
                     User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 _user = await _userManager.FindByIdAsync(currentUserId).ConfigureAwait(false);
             }
@@ -45,11 +43,10 @@ namespace BracketSystem.Web.Controllers
                 _user = await _userManager.FindByNameAsync("DummyUser").ConfigureAwait(false);
             }
 
-            foreach (var team in createScheduleDto.Teams) teamDtos.Add(new TeamDto(team));
-            if (createScheduleDto.AddClashToAnExistingOne) _randomUrl = RandomUrl.GetUrl();
+            var teamDtos = createScheduleDto.Teams.Select(TeamDto.FromEntity).ToList();
 
             var parsedDate = DateTime.Parse(createScheduleDto.Date, CultureInfo.InvariantCulture);
-            var matches = await _unitOfWork.Matches.CreateSchedule(teamDtos, _user, _randomUrl, parsedDate,
+            var matches = await _unitOfWork.Matches.CreateSchedule(teamDtos, _user, parsedDate,
                     createScheduleDto.PaintballfieldId, createScheduleDto.Name,
                     createScheduleDto.AddClashToAnExistingOne)
                 .ConfigureAwait(false);
@@ -85,23 +82,6 @@ namespace BracketSystem.Web.Controllers
             return Ok(200);
         }
 
-        [HttpGet("GetAllMatches", Name = "GetMatches")]
-        public async Task<ActionResult<List<BlockDto>>> GetAllMatches()
-        {
-            try
-            {
-                var currentUserId =
-                    Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
-                _user = await _unitOfWork.Users.GetById(currentUserId).ConfigureAwait(false);
-                var matches = await _unitOfWork.Matches.GetMatches(_user).ConfigureAwait(true);
-                return Ok(matches);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"{ex.Message}");
-            }
-        }
-
         [AllowAnonymous]
         [HttpGet("GetByField", Name = "GetByField")]
         public async Task<ActionResult<List<BlockDto>>> GetAllMatchesByField(int paintballfield)
@@ -118,10 +98,10 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("{time}/{name}", Name = "GetMatchesByDate")]
-        public async Task<ActionResult<IEnumerable<BlockDto>>> GetMatchesByDate(DateTime time, string name)
+        [HttpGet("{guid}", Name = "GetMatchesByGuid")]
+        public async Task<ActionResult<IEnumerable<BlockDto>>> GetMatchesByGuid(string guid)
         {
-            IEnumerable<BlockDto> matches = await _unitOfWork.Matches.GetMatchesByDate(time, name).ConfigureAwait(true);
+            IEnumerable<BlockDto> matches = await _unitOfWork.Matches.GetMatchesByGuid(guid).ConfigureAwait(true);
             return Ok(matches);
         }
     }

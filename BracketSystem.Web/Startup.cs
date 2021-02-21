@@ -1,4 +1,5 @@
-﻿using BracketSystem.Core.Data;
+﻿using System.Linq;
+using BracketSystem.Core.Data;
 using BracketSystem.Core.Data.Repositories;
 using BracketSystem.Core.Helpers;
 using BracketSystem.Core.Models.Entities;
@@ -20,6 +21,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
+using Microsoft.AspNetCore.SpaServices.AngularCli;
 
 namespace BracketSystem.Web
 {
@@ -80,11 +82,17 @@ namespace BracketSystem.Web
                     })
                 .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
+            var allowedOrigins = Configuration
+                .GetSection("AllowedOrigins")
+                .GetChildren()
+                .Select(x => x.Value)
+                .ToArray();
+            
             services.AddCors(options =>
             {
                 options.AddPolicy("Cors",
                     corsPolicyBuilder => corsPolicyBuilder
-                        .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>())
+                        .WithOrigins(allowedOrigins)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials()
@@ -92,6 +100,9 @@ namespace BracketSystem.Web
             });
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // host and serve client application files
+            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "Client/Angular"; });
 
             if (HostingEnvironment.IsDevelopment())
             {
@@ -148,7 +159,8 @@ namespace BracketSystem.Web
             }
 
             // app.UseHttpsRedirection();
-
+// host and serve client application files
+            app.UseSpaStaticFiles();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -160,7 +172,20 @@ namespace BracketSystem.Web
             {
                 endpoints.MapControllers()
                     .RequireCors("Cors");
-                endpoints.MapFallbackToController("Index", "Fallback");
+            });
+
+            // host and serve client application files
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "Client"; 
+                /*spa.UseSpaPrerendering(options =>
+                {
+                    // This is the path where angular generates the server build result
+                    // This path would be different when using React or Vue
+                    options.BootModulePath = $"{spa.Options.SourcePath}/server/main.js";
+
+                    options.ExcludeUrls = new[] { "/sockjs-node" };
+                });*/
             });
         }
 
@@ -173,7 +198,7 @@ namespace BracketSystem.Web
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                            Encoding.ASCII.GetBytes(Configuration.GetValue<string>("AppSettings:Token"))),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                 };

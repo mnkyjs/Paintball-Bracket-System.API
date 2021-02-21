@@ -6,9 +6,10 @@ namespace BracketSystem.Core.Models.Entities
     public class Match
     {
         public int Id { get; set; }
-        public string RandomUrl { get; set; }
         public string MatchName { get; set; }
         public DateTime? Date { get; set; }
+
+        public string Guid { get; set; }
 
         [ForeignKey("TeamA")] public int TeamAId { get; set; }
 

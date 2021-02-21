@@ -2,27 +2,17 @@
 
 namespace BracketSystem.Core.Models.Dtos
 {
-    public class UserForLoginDto : BaseDto<User>
+    public class UserForLoginDto
     {
         public string Username { get; set; }
         public string Password { get; set; }
 
         public static UserForLoginDto FromEntity(User entity)
         {
-            UserForLoginDto vm = null;
-
-            if (entity != null)
+            return new UserForLoginDto
             {
-                vm = new UserForLoginDto();
-                CopyProperties(entity, vm);
-            }
-
-            return vm;
-        }
-
-        public override void UpdateEntity(User entity)
-        {
-            entity.UserName = Username;
+                Username = entity.UserName
+            };
         }
     }
 }

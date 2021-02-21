@@ -22,7 +22,7 @@ namespace BracketSystem.Core.Data.Repositories
 
         #endregion BracketContext
 
-        public async Task<List<TeamDto[]>> CreateSchedule(List<TeamDto> teams, User user, string url, DateTime date,
+        public async Task<List<TeamDto[]>> CreateSchedule(List<TeamDto> teams, User user, DateTime date,
             int paintballFieldId, string clashName, bool addToExistingClashDay = false)
         {
             var matches = new List<TeamDto[]>();
@@ -69,7 +69,7 @@ namespace BracketSystem.Core.Data.Repositories
                 teams.Insert(1, teamToAddAtIndexOne);
             }
 
-            await SaveMatches(matches, user, addToExistingClashDay, date, paintballFieldId, clashName, url);
+            await SaveMatches(matches, user, date, paintballFieldId, clashName);
             return matches;
         }
 
@@ -86,12 +86,12 @@ namespace BracketSystem.Core.Data.Repositories
             return await listOfMatches;
         }
 
-        public async Task<IEnumerable<BlockDto>> GetMatchesByDate(DateTime dateTime, string name)
+        public async Task<IEnumerable<BlockDto>> GetMatchesByGuid(string guid)
         {
             var matches = BracketContext.Matches.Include(u => u.User).Include(a => a.TeamA).Include(b => b.TeamB)
-                .Where(x => x.Date == dateTime).Where(n => n.MatchName == name)
+                .Where(x => x.Guid == guid)
                 .ToList();
-            var listOfMatchesWithDate = ShowMatchesForView(matches);
+            var listOfMatchesWithDate = await ShowMatchesForView(matches);
             return listOfMatchesWithDate;
         }
 
@@ -113,31 +113,35 @@ namespace BracketSystem.Core.Data.Repositories
             return await listOfMatches;
         }
 
-        public IEnumerable<BlockDto> ShowMatchesForView(List<Match> dbTeams)
+        private async Task<IEnumerable<BlockDto>> ShowMatchesForView(List<Match> dbTeams)
         {
             var result = new List<BlockDto>();
             var counter = 1;
-            for (int i = 0; i < dbTeams.Count; i += 2)
+            await Task.Run(() =>
             {
-                if (dbTeams.Count % 2 == 1)
+                for (var i = 0; i < dbTeams.Count; i += 2)
                 {
-                    if (i == dbTeams.Count - 1)
+                    if (dbTeams.Count % 2 == 1)
                     {
-                        break;
+                        if (i == dbTeams.Count - 1)
+                        {
+                            break;
+                        }
                     }
+
+                    var block = new BlockDto
+                    {
+                        BlockNumber = counter,
+                        Games = new List<string>
+                        {
+                            {$"{dbTeams[i].TeamA.Name} vs {dbTeams[i].TeamB.Name}"},
+                            {$"{dbTeams[i + 1].TeamA.Name} vs {dbTeams[i + 1].TeamB.Name}"},
+                        }
+                    };
+                    result.Add(block);
+                    counter++;
                 }
-                var block = new BlockDto
-                {
-                    BlockNumber = counter,
-                    Games = new List<string>
-                    {
-                        {$"{dbTeams[i].TeamA.Name} vs {dbTeams[i].TeamB.Name}"},
-                        {$"{dbTeams[i + 1].TeamA.Name} vs {dbTeams[i + 1].TeamB.Name}"},
-                    }
-                };
-                result.Add(block);
-                counter++;
-            }
+            });
 
             return result;
         }
@@ -150,29 +154,22 @@ namespace BracketSystem.Core.Data.Repositories
             return matches;
         }
 
-        private async Task ClearMatchDay(DateTime today, User currentUser)
-        {
-            await BracketContext.Matches.Where(t => t.Date == today).Where(u => u.User == currentUser)
-                .ForEachAsync(t => BracketContext.Matches.Remove(t));
-        }
-
-        private async Task SaveMatches(IEnumerable<TeamDto[]> matches, User user, bool addToExistingClashDay,
+        private async Task SaveMatches(IEnumerable<TeamDto[]> matches, User user,
             DateTime date,
-            int paintballFieldId, string clashName, string url)
+            int paintballFieldId, string clashName)
         {
-            // if (!addToExistingClashDay) ClearMatchDay(date, user).Wait();
-
+            var guid = Guid.NewGuid().ToString();
             var dbMatches = new List<Match>();
 
             foreach (var item in matches)
             {
                 var dayMatch = new Match
                 {
-                    TeamA = new Team {Id = item[0].Id, Name = item[0].Name},
-                    TeamB = new Team {Id = item[1].Id, Name = item[1].Name},
+                    TeamA = new Team {Id = item[0].Id ?? default(int), Name = item[0].Name},
+                    TeamB = new Team {Id = item[1].Id ?? default(int), Name = item[1].Name},
                     Date = date.Date.AddDays(1),
                     User = new User {Id = user.Id, UserName = user.UserName},
-                    RandomUrl = url,
+                    Guid = guid,
                     MatchName = clashName,
                     PaintballfieldId = paintballFieldId
                 };

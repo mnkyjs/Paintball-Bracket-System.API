@@ -60,13 +60,14 @@ namespace BracketSystem.Web.Controllers
             if (team != null) return BadRequest($"{teamDto.Name} existiert bereits!");
 
             var teamToCreate = new Team();
-            teamDto.UpdateEntity(teamToCreate);
+            BaseDto.CopyProperties(teamDto, teamToCreate);
+
             teamToCreate.CreatorId = _user.Id;
 
             _unitOfWork.Teams.Add(teamToCreate);
             await _unitOfWork.CompleteAsync().ConfigureAwait(false);
 
-            return CreatedAtAction(nameof(GetSingleRecord), new {teamToCreate.Id}, teamDto);
+            return Ok(TeamDto.FromEntity(teamToCreate));
         }
 
         [HttpDelete("{id}", Name = "DeleteTeam")]
@@ -89,7 +90,7 @@ namespace BracketSystem.Web.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("GetPagedListOfTeams",Name = "GetPagedListOfTeams")]
+        [HttpGet("GetPagedListOfTeams", Name = "GetPagedListOfTeams")]
         public async Task<ActionResult<PagedResult<Team>>> FindTeams(int page = 1, int pageSize = 10,
             string filter = null, string sortColumn = "Name", string sortOrder = "asc")
         {
@@ -115,7 +116,8 @@ namespace BracketSystem.Web.Controllers
         public async Task<ActionResult<TeamDto>> GetSingleRecord(int id)
         {
             var teamDto =
-                new TeamDto(await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id).ConfigureAwait(false));
+                TeamDto.FromEntity(await _unitOfWork.Teams.FindByConditionSingle(x => x.Id == id)
+                    .ConfigureAwait(false));
 
             return Ok(teamDto);
         }
@@ -136,10 +138,10 @@ namespace BracketSystem.Web.Controllers
 
             if (teamNameCheck != null) return BadRequest($"{teamDto.Name} existiert bereits!");
 
-            teamDto.UpdateEntity(team);
+            BaseDto.CopyProperties(teamDto, team);
             await _unitOfWork.CompleteAsync().ConfigureAwait(false);
 
-            return CreatedAtAction(nameof(GetSingleRecord), new {team.Id}, teamDto);
+            return Ok(teamDto);
         }
 
         #endregion Methods

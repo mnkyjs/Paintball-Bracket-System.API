@@ -2,37 +2,18 @@
 
 namespace BracketSystem.Core.Models.Dtos
 {
-    public class UserFlatDto : BaseDto<User>
+    public class UserFlatDto
     {
-        public UserFlatDto()
-        {
-        }
-
-        public UserFlatDto(User user) : this()
-        {
-            FromEntity(user);
-        }
-
         public string TeamName { get; set; }
         public string UserName { get; set; }
 
         public static UserFlatDto FromEntity(User entity)
         {
-            UserFlatDto vm = null;
-
-            if (entity != null)
+            return new UserFlatDto
             {
-                vm = new UserFlatDto();
-                CopyProperties(entity, vm);
-            }
-
-            return vm;
-        }
-
-        public override void UpdateEntity(User entity)
-        {
-            entity.UserName = UserName;
-            entity.TeamName = TeamName;
+                TeamName = entity.TeamName,
+                UserName = entity.UserName
+            };
         }
     }
 }

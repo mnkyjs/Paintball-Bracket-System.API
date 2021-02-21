@@ -54,12 +54,14 @@ namespace BracketSystem.Web.Controllers
             {
                 CreatorId = _user.Id
             };
-            fieldDto.UpdateEntity(fieldToCreate);
+            BaseDto.CopyProperties(fieldDto, fieldToCreate);
 
             _unitOfWork.Fields.Add(fieldToCreate);
             await _unitOfWork.CompleteAsync();
+            
+            fieldDto.FromEntity(fieldToCreate);
 
-            return CreatedAtAction(nameof(GetSingleRecord), new {fieldToCreate.Id}, fieldDto);
+            return Ok(fieldDto);
         }
 
         [Authorize(Policy = "Root")]
@@ -117,10 +119,7 @@ namespace BracketSystem.Web.Controllers
                 new FieldDto(await _unitOfWork.Fields.FindByConditionSingle(
                     include: source => source.Include(x => x.Matches),
                     filter: x => x.Id == id));
-            if (fieldDto != null)
-                return Ok(fieldDto);
-
-            return BadRequest();
+            return Ok(fieldDto);
         }
 
         [Authorize(Policy = "Root")]
@@ -141,11 +140,11 @@ namespace BracketSystem.Web.Controllers
             if (fieldToCheck != null && fieldToCheck.Id != field.Id)
                 return BadRequest($"{fieldDto.Name} existiert bereits!");
 
-            fieldDto.UpdateEntity(field);
+            BaseDto.CopyProperties(fieldDto, field);
 
             await _unitOfWork.CompleteAsync();
 
-            return CreatedAtAction(nameof(GetSingleRecord), new {field.Id}, fieldDto);
+            return Ok(fieldDto);
         }
 
         #endregion Methods

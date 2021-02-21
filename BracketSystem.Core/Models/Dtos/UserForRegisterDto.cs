@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BracketSystem.Core.Models.Dtos
 {
-    public class UserForRegisterDto : BaseDto<User>
+    public class UserForRegisterDto 
     {
         [Required]
         [StringLength(72, MinimumLength = 4, ErrorMessage = "Du musst ein Password mit 4 bis 12 Zeichen verwenden!")]
@@ -12,10 +12,10 @@ namespace BracketSystem.Core.Models.Dtos
         public string TeamName { get; set; }
 
         [Required] public string UserName { get; set; }
-        public override void UpdateEntity(User entity)
+        public void UpdateEntity(User entity)
         {
-            entity.UserName = UserName;
-            entity.TeamName = TeamName;
+            TeamName = entity.TeamName;
+            UserName = entity.UserName;
         }
     }
 }
